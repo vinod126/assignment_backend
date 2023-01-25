@@ -5,6 +5,7 @@
 - handles CRUD operations for food, order, menu
 - handles authentication and authorization
 - handles Sign in and Sign up 
+- api docs : `http://localhost:3001/api-docs/`
 
 ## Setup
 ### Clone this repository
