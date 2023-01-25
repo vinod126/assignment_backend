@@ -3,9 +3,6 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
-const { body, query } = require("express-validator");
-const validator = require("./modules/validators/validator");
-
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 let foodItemsRouter = require("./routes/foodItems");
@@ -14,6 +11,7 @@ let ordersRouter = require("./routes/orders");
 let reviewRouter = require("./routes/review");
 let swaggerJsDoc = require("swagger-jsdoc");
 let swaggerUI = require("swagger-ui-express");
+var userModule = require("./modules/userModule");
 var app = express();
 
 // view engine setup
@@ -37,10 +35,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
-
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs));
-app.use("/", indexRouter);
 app.use("/users", usersRouter);
+app.use(function (req, res, next) {
+  userModule.authorizeUser(req, res, next);
+  next();
+});
+app.use("/", indexRouter);
 app.use("/getFoodItems", foodItemsRouter);
 app.use("/menu", menuRouter);
 app.use("/orders", ordersRouter);

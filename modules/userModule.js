@@ -51,7 +51,7 @@ const authUserItem = async (req, res, next) => {
       jwt.sign(
         { email: userItem.email, role: userItem.role },
         "Walhalla",
-        { expiresIn: 60 * 60 },
+        { expiresIn: 60 * 60 }, //expires in one hour (in seconds)
         function (err, token) {
           if (err) {
             next(err);
@@ -60,7 +60,7 @@ const authUserItem = async (req, res, next) => {
             SameSite: "strict",
             httpOnly: true,
             secure: true,
-            maxAge: 1000 * 60 * 60,
+            maxAge: 60000 * 60, //expires in one hour (in milli seconds)
           };
           res
             .cookie("token", token, cookieOptions)
@@ -75,7 +75,39 @@ const authUserItem = async (req, res, next) => {
   }
 };
 
+//authorizes the user
+const authorizeUser = async (req, res, next) => {
+  let token = req.headers.cookie;
+  if (token) {
+    token = token.split("=")[1];
+  } else {
+    next(new Error("Session expired! kindly login again"));
+  }
+  console.log("token  : ", token, typeof req, typeof res, typeof next);
+  jwt.verify(token, "Walhalla", function (err, decoded) {
+    if (err) {
+      console.log(err);
+      next(err);
+    } else {
+      let authorizeDetails = {
+        //this has what user cannot access
+        admin: { notAllowed: [] },
+        user: { notAllowed: ["menu", "modifyOrderItems"] },
+      };
+      try {
+        const role = decoded.role;
+        if (authorizeDetails[role]["notAllowed"].includes(role)) {
+          next(new Error("You are not authorised"));
+        }
+      } catch (err) {
+        next(err);
+      }
+    }
+  });
+};
+
 module.exports = {
   createUserItem,
   authUserItem,
+  authorizeUser,
 };
