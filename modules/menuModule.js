@@ -49,6 +49,10 @@ const removeMenuItem = async (req, res, next) => {
   let id = req.query?.id;
   try {
     await menu.delete(id);
+    const foodItems = dataStore.collection("foodItems");
+    if (foodItems.get(id)) {
+      foodItems.delete(id);
+    }
     res.send("removed item successfully " + id);
   } catch (err) {
     next(err);
